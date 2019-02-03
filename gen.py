@@ -29,13 +29,15 @@ class Main:
         # A* algorithm object
         self.star = AStar()
         self.done = False
+        self.slow = False
 
     def run(self):
         """Maze Generator run loop"""
         self.events()
         self.updates()
-        self.draw()
-        self.clock.tick(FPS)
+        if not self.slow or self.done:
+            self.draw()
+            self.clock.tick(FPS)
 
     def events(self):
         """Check if exit window"""
@@ -55,6 +57,9 @@ class Main:
                     # Begins A*
                     self.star.load_grid(self.grid)
                     self.star.search(self.screen)
+                elif event.key == pg.K_s:
+                    # Press s to skip the maze drawing process
+                    self.skip_draw()
 
     def updates(self):
         # Sets current cell to visited
@@ -88,6 +93,14 @@ class Main:
         # Highlights current cell in blue
         self.current.highlight(self.screen)
         pg.display.flip()
+
+    def skip_draw(self):
+        """Called when 's' is pressed and causes the
+        draw loop to be skipped to generate the maze a lot faster"""
+        if not self.slow:
+            self.slow = True
+        else:
+            self.slow = False
 
     def load_cells(self):
         """Loads cells from a json file"""

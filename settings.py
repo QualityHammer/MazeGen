@@ -19,7 +19,7 @@ RED = (255, 0, 0)
 # Adjustable settings
 show_path = False
 FPS = 500
-CW = 20
+CW = 10
 COLS = floor(WIDTH / CW)
 ROWS = floor(HEIGHT / CW)
 
