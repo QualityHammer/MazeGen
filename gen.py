@@ -1,7 +1,7 @@
 from settings import *
 from cell import Cell
+from mouse import AStar
 import pygame as pg
-import numpy as np
 import json
 import sys
 
@@ -14,14 +14,21 @@ class Main:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.running = True
+        # 1d array of all cells
         self.grid = []
+        # Stack of cell path
         self.stack = []
         # Create cells
         for col in range(COLS):
             for row in range(ROWS):
                 cell = Cell(col, row)
                 self.grid.append(cell)
+        for cell in self.grid:
+            cell.get_neighbors(self.grid)
         self.current = self.grid[0]
+        # A* algorithm object
+        self.star = AStar()
+        self.done = False
 
     def run(self):
         """Maze Generator run loop"""
@@ -39,15 +46,21 @@ class Main:
                 sys.exit()
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_SPACE:
+                    # Saves maze as a JSON
                     self.save_cells()
                 elif event.key == pg.K_l:
+                    # Loads maze JSON data
                     self.load_cells()
+                elif event.key == pg.K_a:
+                    # Begins A*
+                    self.star.load_grid(self.grid)
+                    self.star.search(self.screen)
 
     def updates(self):
         # Sets current cell to visited
         self.current.visited = True
         # Picks random neighbor
-        nxt = self.current.check_neighbors(self.grid)
+        nxt = self.current.check_neighbors()
         if nxt:
             nxt.visited = True
             # Pushes current cell to stack
@@ -61,6 +74,10 @@ class Main:
             self.current = self.stack[-1]
             self.stack.remove(self.current)
             self.current.in_stack = False
+        elif not self.stack:
+            if not self.done:
+                self.done = True
+                print('maze generated in: {}seconds'.format(pg.time.get_ticks() / 1000))
 
     def draw(self):
         """Draws to screen"""
@@ -81,14 +98,14 @@ class Main:
                 self.grid[g_counter].set_walls(walls)
                 self.grid[g_counter].visited = True
                 g_counter += 1
-        print('----loaded----')
+        print('----maze_loaded----')
 
     def save_cells(self):
         """Saves the list of cells to a json when the maze is finished"""
         maze = {'cells': [cell.walls for cell in self.grid]}
         with open('cells.json', 'w') as file:
             json.dump(maze, file)
-        print('-----saved-----')
+        print('-----maze_saved-----')
 
 
 def remove_walls(a, b):
